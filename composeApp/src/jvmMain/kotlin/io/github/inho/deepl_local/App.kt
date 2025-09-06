@@ -49,7 +49,7 @@ object JetBrainsColors {
 @Composable
 @Preview
 fun App() {
-    val deepLClient = remember { DeepLClient("실제키") }
+    val deepLClient = remember { DeepLClient("5a3ddc72-79a3-422c-b744-b6f41dfaca9e:fx") }
 
     var sourceText by remember { mutableStateOf("") }
     var translatedText by remember { mutableStateOf("") }
