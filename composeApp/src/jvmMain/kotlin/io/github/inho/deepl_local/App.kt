@@ -1,7 +1,5 @@
 package io.github.inho.deepl_local
 
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,8 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -160,7 +160,7 @@ fun TitleBar() {
         ) {
             Badge { Text("v1.0.0", fontSize = 10.sp) }
             Badge(containerColor = JetBrainsColors.Success) {
-                Text("Kotlin Desktop", fontSize = 10.sp)
+                Text("Developed By JIH", fontSize = 10.sp)
             }
         }
     }
@@ -206,7 +206,7 @@ fun SourceTextArea(
                     unfocusedTextColor = JetBrainsColors.Text,
                     focusedContainerColor = JetBrainsColors.Background,
                     unfocusedContainerColor = JetBrainsColors.Background
-            ),
+                ),
                 textStyle = androidx.compose.ui.text.TextStyle(
                     fontFamily = FontFamily.Monospace,
                     fontSize = 14.sp
@@ -301,19 +301,24 @@ fun TranslatedTextArea(
         Column(
             modifier = Modifier.fillMaxSize().padding(16.dp)
         ) {
-            Text(
-                text = "번역 결과",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = JetBrainsColors.TextSecondary,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "번역 결과",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = JetBrainsColors.TextSecondary,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(JetBrainsColors.Background, RoundedCornerShape(4.dp))
                     .padding(12.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
                 when {
                     errorMessage != null -> {
@@ -324,6 +329,7 @@ fun TranslatedTextArea(
                             fontSize = 14.sp
                         )
                     }
+
                     text.isNotBlank() -> {
                         SelectionContainer {
                             Text(
@@ -334,6 +340,7 @@ fun TranslatedTextArea(
                             )
                         }
                     }
+
                     else -> {
                         Text(
                             text = "번역 결과가 여기에 표시됩니다...",
