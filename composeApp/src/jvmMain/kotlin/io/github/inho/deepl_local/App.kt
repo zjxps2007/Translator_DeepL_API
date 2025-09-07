@@ -165,7 +165,6 @@ fun App() {
                 characterCount = sourceText.length, isTranslating = isTranslating
             )
         }
-
         if (showSettings) {
             var tempKey by remember { mutableStateOf(apiKey) }
             var reveal by remember { mutableStateOf(false) }
@@ -197,49 +196,71 @@ fun App() {
                                 unfocusedBorderColor = JetBrainsColors.Border
                             )
                         )
-                        if (apiKey.isBlank()) {
-                            Text("현재 저장된 키가 없습니다.", color = JetBrainsColors.TextSecondary)
-                        } else {
-                            Text("키가 저장되어 있습니다.", color = JetBrainsColors.TextSecondary)
-                        }
-                    }
-                },
-                confirmButton = {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = { showSettings = false }) {
-                            Text("취소")
-                        }
-                        TextButton(
-                            onClick = {
-                                SettingsStore.clearApiKey()
-                                apiKey = ""
-                                tempKey = ""
+
+                        // 상태 문구 + 우측에 키 삭제/저장 버튼
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                if (apiKey.isBlank()) "현재 저장된 키가 없습니다."
+                                else "키가 저장되어 있습니다.",
+                                color = JetBrainsColors.TextSecondary
+                            )
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                TextButton(
+                                    onClick = {
+                                        SettingsStore.clearApiKey()
+                                        apiKey = ""
+                                        tempKey = ""
+                                    },
+                                    enabled = apiKey.isNotBlank()
+                                ) {
+                                    Text(
+                                        "키 삭제",
+                                        color = if (apiKey.isNotBlank()) JetBrainsColors.Error else JetBrainsColors.Border
+                                    )
+                                }
+                                TextButton(
+                                    onClick = {
+                                        val trimmed = tempKey.trim()
+                                        SettingsStore.saveApiKey(trimmed)
+                                        apiKey = trimmed
+                                    },
+                                    colors = ButtonDefaults.textButtonColors(contentColor = JetBrainsColors.Success),
+                                    enabled = canSave
+                                ) {
+                                    Text("저장")
+                                }
                             }
-                        ) {
-                            Text("키 삭제", color = JetBrainsColors.Error)
-                        }
-                        Button(
-                            onClick = {
-                                val trimmed = tempKey.trim()
-                                SettingsStore.saveApiKey(trimmed)
-                                apiKey = trimmed
-                                showSettings = false
-                            },
-                            enabled = canSave
-                        ) {
-                            Text("저장")
                         }
                     }
                 },
-                dismissButton = {},
+                // 하단 조작 버튼: 완료/취소
+                confirmButton = {
+                    TextButton(
+                        onClick = { showSettings = false },
+                    ) {
+                        Text("완료")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showSettings = false },
+                        colors = ButtonDefaults.textButtonColors(contentColor = JetBrainsColors.Error)
+                    ) {
+                        Text("취소")
+                    }
+                },
                 containerColor = JetBrainsColors.Surface,
                 titleContentColor = JetBrainsColors.Text,
                 textContentColor = JetBrainsColors.TextSecondary
             )
         }
+
     }
 }
-
 
 @Composable
 fun TitleBar(
