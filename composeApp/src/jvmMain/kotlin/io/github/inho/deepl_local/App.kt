@@ -29,9 +29,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.*
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 object JetBrainsColors {
@@ -71,10 +73,7 @@ fun App() {
         )
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(JetBrainsColors.Background)
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().background(JetBrainsColors.Background).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // 타이틀 바
@@ -82,8 +81,7 @@ fun App() {
 
             // 메인 번역 인터페이스
             Row(
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                modifier = Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 SourceTextArea(
                     text = sourceText,
@@ -110,8 +108,7 @@ fun App() {
                                 isTranslating = true
                                 errorMessage = null
                                 deepLClient.translate(sourceText, sourceLanguage, targetLanguage)
-                                    .onSuccess { translatedText = it }
-                                    .onFailure { errorMessage = it.message }
+                                    .onSuccess { translatedText = it }.onFailure { errorMessage = it.message }
                                 isTranslating = false
                             }
                         }
@@ -122,16 +119,13 @@ fun App() {
 
                 // 번역 결과 영역
                 TranslatedTextArea(
-                    text = translatedText,
-                    errorMessage = errorMessage,
-                    modifier = Modifier.weight(1f).fillMaxHeight()
+                    text = translatedText, errorMessage = errorMessage, modifier = Modifier.weight(1f).fillMaxHeight()
                 )
             }
 
             // 하단 상태 바
             StatusBar(
-                characterCount = sourceText.length,
-                isTranslating = isTranslating
+                characterCount = sourceText.length, isTranslating = isTranslating
             )
         }
     }
@@ -141,9 +135,7 @@ fun App() {
 @Composable
 fun TitleBar() {
     Row(
-        modifier = Modifier.fillMaxWidth()
-            .background(JetBrainsColors.Surface, RoundedCornerShape(8.dp))
-            .padding(16.dp),
+        modifier = Modifier.fillMaxWidth().background(JetBrainsColors.Surface, RoundedCornerShape(8.dp)).padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -169,9 +161,7 @@ fun TitleBar() {
 
 @Composable
 fun SourceTextArea(
-    text: String,
-    onTextChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    text: String, onTextChange: (String) -> Unit, modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier,
@@ -190,26 +180,19 @@ fun SourceTextArea(
             )
 
             OutlinedTextField(
-                value = text,
-                onValueChange = onTextChange,
-                modifier = Modifier.fillMaxSize(),
-                placeholder = {
+                value = text, onValueChange = onTextChange, modifier = Modifier.fillMaxSize(), placeholder = {
                     Text(
-                        "번역할 내용을 입력하세요.",
-                        color = JetBrainsColors.TextSecondary
+                        "번역할 내용을 입력하세요.", color = JetBrainsColors.TextSecondary
                     )
-                },
-                colors = OutlinedTextFieldDefaults.colors(
+                }, colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = JetBrainsColors.Accent,
                     unfocusedBorderColor = JetBrainsColors.Border,
                     focusedTextColor = JetBrainsColors.Text,
                     unfocusedTextColor = JetBrainsColors.Text,
                     focusedContainerColor = JetBrainsColors.Background,
                     unfocusedContainerColor = JetBrainsColors.Background
-                ),
-                textStyle = androidx.compose.ui.text.TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 14.sp
+                ), textStyle = androidx.compose.ui.text.TextStyle(
+                    fontFamily = FontFamily.Monospace, fontSize = 14.sp
                 )
             )
         }
@@ -234,9 +217,7 @@ fun CenterControls(
     ) {
         // 소스 언어 선택
         LanguageDropdown(
-            selectedLanguage = sourceLanguage,
-            onLanguageSelected = onSourceLanguageChange,
-            label = "소스 언어"
+            selectedLanguage = sourceLanguage, onLanguageSelected = onSourceLanguageChange, label = "소스 언어"
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -244,9 +225,7 @@ fun CenterControls(
         // 언어 교체 버튼
         IconButton(
             onClick = onSwapLanguages,
-            modifier = Modifier
-                .background(JetBrainsColors.SurfaceLight, RoundedCornerShape(50))
-                .size(40.dp)
+            modifier = Modifier.background(JetBrainsColors.SurfaceLight, RoundedCornerShape(50)).size(40.dp)
         ) {
             Text("⇄", fontSize = 16.sp, color = JetBrainsColors.Accent)
         }
@@ -255,9 +234,7 @@ fun CenterControls(
 
         // 타겟 언어 선택
         LanguageDropdown(
-            selectedLanguage = targetLanguage,
-            onLanguageSelected = onTargetLanguageChange,
-            label = "번역 결과"
+            selectedLanguage = targetLanguage, onLanguageSelected = onTargetLanguageChange, label = "번역 결과"
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -274,9 +251,7 @@ fun CenterControls(
         ) {
             if (isTranslating) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
-                    color = Color.White,
-                    strokeWidth = 2.dp
+                    modifier = Modifier.size(16.dp), color = Color.White, strokeWidth = 2.dp
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("번역 중...")
@@ -289,9 +264,7 @@ fun CenterControls(
 
 @Composable
 fun TranslatedTextArea(
-    text: String,
-    errorMessage: String?,
-    modifier: Modifier = Modifier
+    text: String, errorMessage: String?, modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier,
@@ -301,9 +274,16 @@ fun TranslatedTextArea(
         Column(
             modifier = Modifier.fillMaxSize().padding(16.dp)
         ) {
+            val clipboard = LocalClipboardManager.current
+            var copied by remember { mutableStateOf(false) }
+            if (copied) {
+                LaunchedEffect(Unit) {
+                    delay(1200)
+                    copied = false
+                }
+            }
             Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
                     text = "번역 결과",
@@ -314,11 +294,8 @@ fun TranslatedTextArea(
                 )
             }
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(JetBrainsColors.Background, RoundedCornerShape(4.dp))
-                    .padding(12.dp)
-                    .verticalScroll(rememberScrollState())
+                modifier = Modifier.fillMaxSize().background(JetBrainsColors.Background, RoundedCornerShape(4.dp))
+                    .padding(12.dp).verticalScroll(rememberScrollState())
             ) {
                 when {
                     errorMessage != null -> {
@@ -356,9 +333,7 @@ fun TranslatedTextArea(
 
 @Composable
 fun LanguageDropdown(
-    selectedLanguage: Language,
-    onLanguageSelected: (Language) -> Unit,
-    label: String
+    selectedLanguage: Language, onLanguageSelected: (Language) -> Unit, label: String
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -375,16 +350,13 @@ fun LanguageDropdown(
                 onClick = { expanded = true },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = JetBrainsColors.Surface,
-                    contentColor = JetBrainsColors.Text
+                    containerColor = JetBrainsColors.Surface, contentColor = JetBrainsColors.Text
                 ),
                 border = BorderStroke(1.dp, JetBrainsColors.Border),
                 shape = RoundedCornerShape(4.dp)
             ) {
                 Text(
-                    text = selectedLanguage.displayName,
-                    fontSize = 12.sp,
-                    fontFamily = FontFamily.Monospace
+                    text = selectedLanguage.displayName, fontSize = 12.sp, fontFamily = FontFamily.Monospace
                 )
             }
 
@@ -397,16 +369,12 @@ fun LanguageDropdown(
                     DropdownMenuItem(
                         text = {
                             Text(
-                                language.displayName,
-                                color = JetBrainsColors.Text,
-                                fontSize = 12.sp
+                                language.displayName, color = JetBrainsColors.Text, fontSize = 12.sp
                             )
-                        },
-                        onClick = {
+                        }, onClick = {
                             onLanguageSelected(language)
                             expanded = false
-                        },
-                        colors = MenuDefaults.itemColors(
+                        }, colors = MenuDefaults.itemColors(
                             textColor = JetBrainsColors.Text
                         )
                     )
@@ -418,12 +386,10 @@ fun LanguageDropdown(
 
 @Composable
 fun StatusBar(
-    characterCount: Int,
-    isTranslating: Boolean
+    characterCount: Int, isTranslating: Boolean
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth()
-            .background(JetBrainsColors.Surface, RoundedCornerShape(4.dp))
+        modifier = Modifier.fillMaxWidth().background(JetBrainsColors.Surface, RoundedCornerShape(4.dp))
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -436,37 +402,27 @@ fun StatusBar(
         )
 
         Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically
         ) {
             if (isTranslating) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically
                 ) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(12.dp),
-                        color = JetBrainsColors.Accent,
-                        strokeWidth = 1.dp
+                        modifier = Modifier.size(12.dp), color = JetBrainsColors.Accent, strokeWidth = 1.dp
                     )
                     Text(
-                        text = "DeepL API 연결 중...",
-                        fontSize = 12.sp,
-                        color = JetBrainsColors.TextSecondary
+                        text = "DeepL API 연결 중...", fontSize = 12.sp, color = JetBrainsColors.TextSecondary
                     )
                 }
             } else {
                 Text(
-                    text = "✓ 준비됨",
-                    fontSize = 12.sp,
-                    color = JetBrainsColors.Success
+                    text = "✓ 준비됨", fontSize = 12.sp, color = JetBrainsColors.Success
                 )
             }
 
             Text(
-                text = "UTF-8 | Korean Desktop",
-                fontSize = 12.sp,
-                color = JetBrainsColors.TextSecondary
+                text = "UTF-8 | Korean Desktop", fontSize = 12.sp, color = JetBrainsColors.TextSecondary
             )
         }
     }
