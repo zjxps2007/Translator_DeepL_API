@@ -11,7 +11,7 @@ fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         title = "DeepL Local",
-        icon = painterResource(Res.drawable.icon)
+//        icon = painterResource(Res.drawable.icon.ico)
     ) {
         App()
     }

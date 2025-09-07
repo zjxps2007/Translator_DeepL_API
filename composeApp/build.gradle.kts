@@ -52,8 +52,18 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "io.github.inho.deepl_local"
+            packageName = "deepl_local"
             packageVersion = "1.0.0"
+
+//            macOS {
+//                iconFile.set(project.file("../icons/app.icns"))
+//            }
+            windows {
+                iconFile.set(project.file("src/jvmMain/composeResources/drawable/icon.ico"))
+            }
+//            linux {
+//                iconFile.set(project.file("../icons/app.png"))
+//            }
         }
     }
 }
