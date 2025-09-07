@@ -35,6 +35,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import java.util.prefs.Preferences
+
+
+private object SettingsStore {
+    private val prefs: Preferences = Preferences.userRoot().node("deepl_local")
+    private const val KEY_API = "deepl_api_key"
+
+    fun loadApiKey(): String = prefs.get(KEY_API, "")
+    fun saveApiKey(value: String) = prefs.put(KEY_API, value)
+    fun clearApiKey() = prefs.remove(KEY_API)
+
+}
 
 object JetBrainsColors {
     val Background = Color(0xFF2B2D30)
@@ -51,16 +69,19 @@ object JetBrainsColors {
 @Composable
 @Preview
 fun App() {
-    val deepLClient = remember { DeepLClient("") }
-
     var sourceText by remember { mutableStateOf("") }
     var translatedText by remember { mutableStateOf("") }
     var sourceLanguage by remember { mutableStateOf(Language.AUTO) }
     var targetLanguage by remember { mutableStateOf(Language.ENGLISH) }
     var isTranslating by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var showSettings by remember { mutableStateOf(false) }
+    var apiKey by remember { mutableStateOf(SettingsStore.loadApiKey()) }
+
 
     val scope = rememberCoroutineScope()
+    val deepLClient = remember(apiKey) { DeepLClient(apiKey) }
+//    val deepLClient = remember { DeepLClient("5a3ddc72-79a3-422c-b744-b6f41dfaca9e:fx") }
 
 
     MaterialTheme(
@@ -77,7 +98,9 @@ fun App() {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // 타이틀 바
-            TitleBar()
+            TitleBar(
+                onOpenSettings = { showSettings = true }
+            )
 
             // 메인 번역 인터페이스
             Row(
@@ -85,7 +108,13 @@ fun App() {
             ) {
                 SourceTextArea(
                     text = sourceText,
-                    onTextChange = { sourceText = it },
+                    onTextChange = {
+                        sourceText = it
+                        if (it.isBlank()) {
+                            translatedText = ""
+                            errorMessage = null
+                        }
+                    },
                     modifier = Modifier.weight(1f).fillMaxHeight()
                 )
 
@@ -107,6 +136,11 @@ fun App() {
                             scope.launch {
                                 isTranslating = true
                                 errorMessage = null
+                                if (apiKey.isBlank()) {
+                                    errorMessage = "환경설정에서 DeepL API 키를 설정해주세요."
+                                    isTranslating = false
+                                    return@launch
+                                }
                                 deepLClient.translate(sourceText, sourceLanguage, targetLanguage)
                                     .onSuccess { translatedText = it }.onFailure { errorMessage = it.message }
                                 isTranslating = false
@@ -128,12 +162,86 @@ fun App() {
                 characterCount = sourceText.length, isTranslating = isTranslating
             )
         }
+
+        if (showSettings) {
+            var tempKey by remember { mutableStateOf(apiKey) }
+            var reveal by remember { mutableStateOf(false) }
+            val canSave = tempKey.isNotBlank()
+
+            AlertDialog(
+                onDismissRequest = { showSettings = false },
+                title = { Text("환경설정") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text("DeepL API Key")
+                        OutlinedTextField(
+                            value = tempKey,
+                            onValueChange = { tempKey = it },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text("예: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:fx") },
+                            visualTransformation = if (reveal) VisualTransformation.None else PasswordVisualTransformation(),
+                            trailingIcon = {
+                                IconButton(onClick = { reveal = !reveal }) {
+                                    Icon(
+                                        imageVector = if (reveal) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                        contentDescription = if (reveal) "숨기기" else "표시"
+                                    )
+                                }
+                            },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = JetBrainsColors.Accent,
+                                unfocusedBorderColor = JetBrainsColors.Border
+                            )
+                        )
+                        if (apiKey.isBlank()) {
+                            Text("현재 저장된 키가 없습니다.", color = JetBrainsColors.TextSecondary)
+                        } else {
+                            Text("키가 저장되어 있습니다.", color = JetBrainsColors.TextSecondary)
+                        }
+                    }
+                },
+                confirmButton = {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TextButton(onClick = { showSettings = false }) {
+                            Text("취소")
+                        }
+                        TextButton(
+                            onClick = {
+                                SettingsStore.clearApiKey()
+                                apiKey = ""
+                                tempKey = ""
+                            }
+                        ) {
+                            Text("키 삭제", color = JetBrainsColors.Error)
+                        }
+                        Button(
+                            onClick = {
+                                val trimmed = tempKey.trim()
+                                SettingsStore.saveApiKey(trimmed)
+                                apiKey = trimmed
+                                showSettings = false
+                            },
+                            enabled = canSave
+                        ) {
+                            Text("저장")
+                        }
+                    }
+                },
+                dismissButton = {},
+                containerColor = JetBrainsColors.Surface,
+                titleContentColor = JetBrainsColors.Text,
+                textContentColor = JetBrainsColors.TextSecondary
+            )
+        }
     }
 }
 
 
 @Composable
-fun TitleBar() {
+fun TitleBar(
+    onOpenSettings: () -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth().background(JetBrainsColors.Surface, RoundedCornerShape(8.dp)).padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -148,11 +256,20 @@ fun TitleBar() {
         )
 
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+
         ) {
             Badge { Text("v1.0.0", fontSize = 10.sp) }
             Badge(containerColor = JetBrainsColors.Success) {
                 Text("Developed By JIH", fontSize = 10.sp)
+            }
+            IconButton(onClick = onOpenSettings) {
+                Icon(
+                    imageVector = Icons.Outlined.Settings,
+                    contentDescription = "설정",
+                    tint = JetBrainsColors.TextSecondary
+                )
             }
         }
     }
@@ -422,7 +539,7 @@ fun StatusBar(
             }
 
             Text(
-                text = "UTF-8 | Korean Desktop", fontSize = 12.sp, color = JetBrainsColors.TextSecondary
+                text = "UTF-8 | Power by DeepL", fontSize = 12.sp, color = JetBrainsColors.TextSecondary
             )
         }
     }

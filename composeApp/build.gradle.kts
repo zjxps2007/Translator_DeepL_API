@@ -23,6 +23,8 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(compose.materialIconsExtended)
+
 
             implementation("io.ktor:ktor-client-core:${ktor}")
             implementation("io.ktor:ktor-client-content-negotiation:${ktor}")
@@ -37,6 +39,8 @@ kotlin {
             implementation(libs.kotlinx.coroutinesSwing)
 
             implementation("io.ktor:ktor-client-cio:${ktor}")
+            implementation("ch.qos.logback:logback-classic:1.5.6")
+
 
         }
     }
