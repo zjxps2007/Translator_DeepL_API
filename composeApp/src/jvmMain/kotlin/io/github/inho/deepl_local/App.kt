@@ -36,9 +36,12 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import java.util.prefs.Preferences
@@ -288,13 +291,30 @@ fun SourceTextArea(
         Column(
             modifier = Modifier.fillMaxSize().padding(16.dp)
         ) {
-            Text(
-                text = "소스 텍스트",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = JetBrainsColors.TextSecondary,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "소스 텍스트",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = JetBrainsColors.TextSecondary
+                )
+                IconButton(
+                    onClick = { onTextChange("") },
+                    enabled = text.isNotBlank(),
+                    modifier = Modifier.size(28.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Clear,
+                        contentDescription = "내용 지우기",
+                        tint = if (text.isNotBlank()) JetBrainsColors.TextSecondary else JetBrainsColors.Border,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
 
             OutlinedTextField(
                 value = text, onValueChange = onTextChange, modifier = Modifier.fillMaxSize(), placeholder = {
@@ -394,7 +414,7 @@ fun TranslatedTextArea(
             val clipboard = LocalClipboardManager.current
             var copied by remember { mutableStateOf(false) }
             if (copied) {
-                LaunchedEffect(Unit) {
+                LaunchedEffect(copied) {
                     delay(1200)
                     copied = false
                 }
@@ -409,6 +429,30 @@ fun TranslatedTextArea(
                     color = JetBrainsColors.TextSecondary,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (copied) {
+                        Text("복사됨", fontSize = 12.sp, color = JetBrainsColors.Success)
+                    }
+                    IconButton(
+                        onClick = {
+                            clipboard.setText(AnnotatedString(text))
+                            copied = true
+                        },
+                        enabled = errorMessage == null && text.isNotBlank(),
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.ContentCopy,
+                            contentDescription = "번역 결과 복사",
+                            tint = if (errorMessage == null && text.isNotBlank())
+                                JetBrainsColors.TextSecondary else JetBrainsColors.Border,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
             }
             Box(
                 modifier = Modifier.fillMaxSize().background(JetBrainsColors.Background, RoundedCornerShape(4.dp))
