@@ -59,7 +59,7 @@ compose.desktop {
 //                iconFile.set(project.file("../icons/app.icns"))
 //            }
             windows {
-                iconFile.set(project.file("src/jvmMain/composeResources/drawable/icon.ico"))
+                iconFile.set(project.file("src/jvmMain/composeResources/drawable/icon_w.ico"))
             }
 //            linux {
 //                iconFile.set(project.file("../icons/app.png"))
