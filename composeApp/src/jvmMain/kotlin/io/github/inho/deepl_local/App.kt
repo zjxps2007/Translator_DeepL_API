@@ -84,7 +84,6 @@ fun App() {
 
     val scope = rememberCoroutineScope()
     val deepLClient = remember(apiKey) { DeepLClient(apiKey) }
-//    val deepLClient = remember { DeepLClient("5a3ddc72-79a3-422c-b744-b6f41dfaca9e:fx") }
 
     fun triggerTranslate() {
         if (sourceText.isBlank() || isTranslating) return
