@@ -86,6 +86,34 @@ fun App() {
     val deepLClient = remember(apiKey) { DeepLClient(apiKey) }
 //    val deepLClient = remember { DeepLClient("5a3ddc72-79a3-422c-b744-b6f41dfaca9e:fx") }
 
+    fun triggerTranslate() {
+        if (sourceText.isBlank() || isTranslating) return
+        scope.launch {
+            isTranslating = true
+            errorMessage = null
+            if (apiKey.isBlank()) {
+                errorMessage = "환경설정에서 DeepL API 키를 설정해주세요."
+                isTranslating = false
+                return@launch
+            }
+            deepLClient.translate(sourceText, sourceLanguage, targetLanguage)
+                .onSuccess { translatedText = it }
+                .onFailure { errorMessage = it.message }
+            isTranslating = false
+        }
+    }
+
+    // 입력/언어 변경 시 자동 번역 (디바운스)
+    LaunchedEffect(sourceText, sourceLanguage, targetLanguage) {
+        if (sourceText.isBlank()) {
+            translatedText = ""
+            errorMessage = null
+            return@LaunchedEffect
+        }
+        // 과도한 API 호출 방지
+        delay(500)
+        triggerTranslate()
+    }
 
     MaterialTheme(
         colorScheme = darkColorScheme(
@@ -134,22 +162,7 @@ fun App() {
                             targetLanguage = temp
                         }
                     },
-                    onTranslate = {
-                        if (sourceText.isNotBlank() && !isTranslating) {
-                            scope.launch {
-                                isTranslating = true
-                                errorMessage = null
-                                if (apiKey.isBlank()) {
-                                    errorMessage = "환경설정에서 DeepL API 키를 설정해주세요."
-                                    isTranslating = false
-                                    return@launch
-                                }
-                                deepLClient.translate(sourceText, sourceLanguage, targetLanguage)
-                                    .onSuccess { translatedText = it }.onFailure { errorMessage = it.message }
-                                isTranslating = false
-                            }
-                        }
-                    },
+                    onTranslate = { triggerTranslate() },
                     isTranslating = isTranslating,
                     modifier = Modifier.fillMaxHeight()
                 )
